@@ -9,41 +9,33 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.server.models.response.ResponseData;
 import com.server.models.response.SearchResponseData;
-import com.server.services.SqlQueryService;
-import com.server.services.repositories.MovieFullDataRepository;
-import com.server.services.repositories.MovieRepository;
 
 @RestController
 @RequestMapping("/cinema")
 public class RequestHandlerController {
-
+	
 	@Autowired
-	private MovieRepository movieRepository;
-
+	private DBHandler dbHandler;
+	
 	@Autowired
-	private MovieFullDataRepository movieFullDataRepository;
-
-	@Autowired
-	private SqlQueryService sqlQueryService;
-
 	private APIHandler apiHandler;
 
-	public RequestHandlerController() {
-		apiHandler = new APIHandler();
-	}
+//	public RequestHandlerController() {
+//		apiHandler = new APIHandler();
+//		dbHandler = new DBHandler();
+//	}
 
 	@CrossOrigin
 	@GetMapping("title/{title}")
 	SearchResponseData searchByTitle(@PathVariable String title) {
 		SearchResponseData searchResponseData = null;
-		DatabaseHandler databaseHandler = new DatabaseHandler(movieRepository, sqlQueryService,
-				movieFullDataRepository);
-		searchResponseData = databaseHandler.fetchMovies(title);
+		searchResponseData = dbHandler.fetchMovies(title);
 
 		if (searchResponseData == null || !searchResponseData.isSucceded()) {
-			searchResponseData = apiHandler.fetchMovies(title);
+			searchResponseData = apiHandler.fetchMoviesByTitle(title);
+			
 			if (searchResponseData.isSucceded()) {
-				databaseHandler.saveMovies(searchResponseData.getMovies());
+				dbHandler.saveMovies(searchResponseData.getMovies());
 			}
 		}
 
@@ -54,14 +46,13 @@ public class RequestHandlerController {
 	@GetMapping("id/{id}")
 	ResponseData searchById(@PathVariable String id) {
 		ResponseData responseData = null;
-		DatabaseHandler databaseHandler = new DatabaseHandler(movieRepository, sqlQueryService,
-				movieFullDataRepository);
-		responseData = databaseHandler.getMovieById(id);
+		responseData = dbHandler.getMovieById(id);
 
 		if (responseData == null || !responseData.isSucceded()) {
 			responseData = apiHandler.fetchMovieById(id);
+			
 			if (responseData.isSucceded()) {
-				databaseHandler.saveFullDetailMovie(responseData.getMovie());
+				dbHandler.saveFullDetailMovie(responseData.getMovie());
 			}
 		}
 

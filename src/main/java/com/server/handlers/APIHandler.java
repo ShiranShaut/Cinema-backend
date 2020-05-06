@@ -24,9 +24,11 @@ public class APIHandler {
 
 	private final static String OMDB_API_URL = "http://omdbapi.com/?apikey=" + API_KEY;
 
+	private final static String NO_IMAGE = "https://media.comicbook.com/files/img/default-movie.png";
+	
 	private static Gson gson = new Gson();
 
-	public SearchResponseData fetchMovies(String title) {
+	public SearchResponseData fetchMoviesByTitle(String title) {
 		String searchUrl = OMDB_API_URL + "&s=" + title;
 		String message = "movies fetched";
 		boolean succeeded = false;
@@ -38,8 +40,8 @@ public class APIHandler {
 			succeeded = Boolean.valueOf(movieSearchData.getResponse());
 
 			if (succeeded) {
-				movies = getMoviesWithPoster(movieSearchData.getSearch()); // remove movies with no image source
-
+				movies = movieSearchData.getSearch();
+				setDefaultImages(movies); // set default pictures for movies without an image
 			} else {
 				movies = new MovieSearchDataAPI[] {};
 				message = movieSearchData.getError();
@@ -52,26 +54,31 @@ public class APIHandler {
 		return new SearchResponseData(movies, message, succeeded);
 	}
 
-	private MovieSearchDataAPI[] getMoviesWithPoster(MovieSearchDataAPI[] search) {
-		int length = 0;
-		int j = 0;
-
+	private void setDefaultImages(MovieSearchDataAPI[] search) {
 		for (int i = 0; i < search.length; i++) {
-			if (!search[i].getPoster().equals("N/A")) {
-				length++;
+			if (search[i].getPoster().equals("N/A")) {
+				search[i].setPoster(NO_IMAGE);
 			}
 		}
-
-		MovieSearchDataAPI[] newSearch = new MovieSearchDataAPI[length];
-
-		for (int i = 0; i < search.length; i++) {
-			if (!search[i].getPoster().equals("N/A")) {
-				newSearch[j++] = search[i];
-			}
-		}
-
-		return newSearch;
 	}
+	
+//	private MovieSearchDataAPI[] setDefaultImages(MovieSearchDataAPI[] search) {
+//		for (int i = 0; i < search.length; i++) {
+//			if (!search[i].getPoster().equals("N/A")) {
+//				length++;
+//			}
+//		}
+//
+//		MovieSearchDataAPI[] newSearch = new MovieSearchDataAPI[length];
+//
+//		for (int i = 0; i < search.length; i++) {
+//			if (!search[i].getPoster().equals("N/A")) {
+//				newSearch[j++] = search[i];
+//			}
+//		}
+//
+//		return newSearch;
+//	}
 
 	public ResponseData fetchMovieById(String id) {
 		Movie movie = getMovieById(id);
